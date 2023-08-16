@@ -125,7 +125,7 @@ def main():
         # Generate Samples
         samples = img.sampleRegions(
             collection=training,
-            properties=["class_name", "isTraining"],
+            properties=["class_name", "isTraining", "x", "y"],
             scale=10,
             tileScale=16,
         )
