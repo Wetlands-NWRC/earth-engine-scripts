@@ -16,6 +16,8 @@ from eeng.server.stats import *
 from stack import stack
 from payload import Payload
 
+AOIName = str
+
 
 def get_file_paths(data_dir: str) -> List[str]:
     """Returns a list of file paths for the training and validation data"""
@@ -74,7 +76,7 @@ def make_assessment_table(
     return ee.FeatureCollection([cfm, acc, pro, con, labels])
 
 
-def main():
+def main(name: AOIName):
     print("Starting Random Forest Classification Batch Process ...")
     session_time = datetime.now().strftime("%Y%m%d_%H%M%S")
     print(f"Session Time: {session_time}")
@@ -147,7 +149,7 @@ def main():
         assessment_table = make_assessment_table(matrix, lookupin)
         print("Creating Tasks ...")
         # export
-        root = f"aoi_novascotia/output/{session_time}/{region_id}"
+        root = f"{name}/output/{session_time}/{region_id}"
 
         # Classification Export
         file_prfix = f"{root}/classification/classified-{region_id}-"
@@ -208,4 +210,4 @@ def main():
 if __name__ == "__main__":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     ee.Initialize()
-    main()
+    main(name="aoi_novascotia")
