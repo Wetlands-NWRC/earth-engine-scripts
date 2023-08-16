@@ -189,7 +189,7 @@ def main(name: AOIName):
             description="",
             bucket="cnwi-exports",
             fileNamePrefix=f"{root}/assessment/assessment-{region_id}",
-            fileFormat="CSV",
+            fileFormat="GeoJSON",
         )
 
         print("Starting Jobs ...")
