@@ -24,7 +24,7 @@ except ImportError as e:
 # convert server to client object
 
 
-def extract_from_ee() -> None:
+def extract_from_ee_menu() -> None:
     CRS = "EPSG:4326"
 
     aoi = input("Enter the AOI (ASSET): ")
@@ -33,7 +33,10 @@ def extract_from_ee() -> None:
     outdir = input("Enter the output directory: ")
 
     # convert the aoi to a geometry
+    extract_from_ee(aoi, start, end, outdir)
 
+
+def extract_from_ee(aoi, start, end, outdir):
     aoi = ee.FeatureCollection(aoi).geometry().bounds()
 
     # get the sentinel 1 dv image collection
@@ -52,6 +55,7 @@ def extract_from_ee() -> None:
             "date",
             "group_id",
             "relativeOrbitNumber_start",
+            "platform_number",
             "orbitProperties_pass",
             "system_id",
             "geometry",
@@ -61,6 +65,7 @@ def extract_from_ee() -> None:
         "transmitterReceiverPolarisation"
     ].apply(", ".join)
     # old: new
+
     new_column_names = {
         "relativeOrbitNumber_start": "relorb",
         "orbitProperties_pass": "look_dir",
@@ -76,11 +81,17 @@ def extract_from_ee() -> None:
     gdf.set_crs(epsg="4326").to_file(
         os.path.join(outdir, full_out_name), driver="GeoJSON"
     )
-    short_out_nmae = f's1_dv_{start.replace("-", "_")}_{end.replace("-", "_")}.shp'
-    gdf2.set_crs(epsg="4326").to_file(
-        os.path.join(outdir, short_out_nmae), driver="ESRI Shapefile"
-    )
 
+    platform_numbers = gdf["platform_number"].unique().tolist()
+    gdfs = []
+    for platform_number in platform_numbers:
+        short_out_nmae = f's1_dv_{start.replace("-", "_")}_{end.replace("-", "_")}_{platform_number}.shp'
+        gdfs.append((short_out_nmae, gdf2[gdf2["platform_number"] == platform_number]))
+
+    for filename, gdf in gdfs:
+        gdf.set_crs(epsg="4326").to_file(
+            os.path.join(outdir, filename), driver="ESRI Shapefile"
+        )
     # export aoi to shapefile
     fc = ee.FeatureCollection([ee.Feature(aoi, {"name": "aoi"})])
     gdf_aoi = gpd.GeoDataFrame.from_features(fc.getInfo()["features"])
@@ -172,7 +183,7 @@ def main():
         choice = input(">>> ")
 
         options = {
-            "1": extract_from_ee,
+            "1": extract_from_ee_menu,
             "2": extract_swaths_from_file,
             "3": create_s1_payload,
             "4": exit,
