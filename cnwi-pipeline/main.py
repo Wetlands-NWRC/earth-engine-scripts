@@ -87,7 +87,6 @@ def main(name: AOIName):
         print(f"Found {len(files)} files to process")
 
     for file in files:
-        file = files[0]
         region, training, validation = file
         region_id = re.findall(r"\b\d{3}\b", region)[0]
 
@@ -209,5 +208,5 @@ def main(name: AOIName):
 
 if __name__ == "__main__":
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
-    ee.Initialize()
+    ee.Initialize(project="fpca-336015")
     main(name="aoi_novascotia")
