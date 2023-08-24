@@ -25,13 +25,12 @@ except ImportError as e:
 
 
 def extract_from_ee_menu() -> None:
-    CRS = "EPSG:4326"
-
+    """Extracts Sentinel-1 DV Image Collection from Google Earth Engine as a table"""
     aoi = input("Enter the AOI (ASSET): ")
-    start = input("Enter the start date (YYYY-MM-DD): ")
-    end = input("Enter the end date (YYYY-MM-DD): ")
+    trg_yeat = input("Enter the target year (YYYY): ")
     outdir = input("Enter the output directory: ")
 
+    start, end = f"{trg_yeat}-04-01", f"{trg_yeat}-10-31"
     # convert the aoi to a geometry
     extract_from_ee(aoi, start, end, outdir)
 
