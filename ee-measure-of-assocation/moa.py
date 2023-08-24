@@ -40,22 +40,33 @@ class MOATable(pd.DataFrame):
         return self[(self["rank"] >= lower) & (self["rank"] <= upper)]
 
 
-class MOAPlotter:
-    def __init__(self, tabel: MOATable, rank: int = 3):
-        self.table = tabel
-        self.rank = rank
+class MoaPlot:
+    def __init__(self, title, x_label, y_label):
+        self.title = title
+        self.x_label = x_label
+        self.y_label = y_label
+        self.fig, self.ax = plt.subplots()
 
-    def plot(self, out_dir: str = None):
-        out_dir = out_dir or "moa_plots" if out_dir is None else out_dir
+    def add_histogram(
+        self,
+        data,
+        label=None,
+        bin=100,
+        alpha=0.5,
+    ):
+        self.ax.hist(data, bins=bin, alpha=alpha, label=label)
+        self.ax.set_xlabel(self.x_label)
+        self.ax.set_ylabel(self.y_label)
+        self.ax.set_title(self.title)
+        self.ax.legend()
 
-        ranked = self.table.get_by_rank(self.rank)
-        pass
+    def show(self):
+        plt.show()
+
+    def save(self, path):
+        self.fig.savefig(path)
 
 
-# Steps
-# 1. Create a table
-# 2. Clean the column names
-# 3.
 def create_table(df, label_col):
     cols_2_keep = [
         i
