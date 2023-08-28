@@ -4,40 +4,30 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-class MOATable(pd.DataFrame):
-    @classmethod
-    def from_csv(cls, path: str, **kwargs):
-        """Creates a MOATable from a csv file"""
-        return cls(pd.read_csv(path, **kwargs))
+class MOACalculator:
+    def __init__(self, label_series: pd.Series, versus_series: pd.Series):
+        self.label_series = label_series
+        self.versus_series = versus_series
 
-    def __init__(self, df: pd.DataFrame):
-        super().__init__(df)
+    def calculate(self):
+        """Calculates the MOA score"""
+        label_mean = self.label_series.mean()
+        versus_mean = self.versus_series.mean()
+        cat = pd.concat([self.label_series, self.versus_series])
+        std = cat.std()
+        score = abs(label_mean - versus_mean) / std
+        return score
 
-    @property
-    def labels(self) -> list:
-        """returns the labels"""
-        return list(set(self["label"]))
 
-    @property
-    def predictors(self) -> list:
-        """returns the predictors"""
-        return list(set(self["predictor"]))
+class MOATable:
+    def __init__(self, data: dict):
+        self.table = pd.DataFrame(data)
 
-    def get_by_rank(self, rank: int) -> pd.DataFrame:
-        """returns the table by rank"""
-        return self[self["rank"] == rank]
-
-    def get_by_label(self, label: str) -> pd.DataFrame:
-        """returns the table by label"""
-        return self[self["label"] == label]
-
-    def get_by_predictor(self, predictor: str) -> pd.DataFrame:
-        """returns the table by predictor"""
-        return self[self["predictor"] == predictor]
-
-    def get_by_ranks(self, lower: int, upper: int) -> pd.DataFrame:
-        """returns the table by rank range"""
-        return self[(self["rank"] >= lower) & (self["rank"] <= upper)]
+    def rank(self):
+        self.table["rank"] = self.table.groupby(["label", "versus"])["score"].rank(
+            ascending=False
+        )
+        return self
 
 
 class MoaPlot:
@@ -65,6 +55,44 @@ class MoaPlot:
 
     def save(self, path):
         self.fig.savefig(path)
+
+
+def moa_scores(df, label_col, colums_to_skip: list[str] = None):
+    cols_2_skip = ["system:index", "isTraining", ".geo"]
+
+    if colums_to_skip is not None:
+        cols_2_skip.extend(colums_to_skip)
+
+    # get labels
+    labels = df[label_col].unique().tolist()
+
+    # get all combinations of labels
+    combos = combinations(labels, 2)
+
+    moa_tables = []
+
+    for combo in combos:
+        dfc = df.copy()
+        dfc = dfc[(dfc[label_col] == combo[0]) | (dfc[label_col] == combo[1])]
+        table_data = {"label": [], "versus": [], "predictor": [], "score": []}
+        for col in dfc.columns:
+            if col in cols_2_skip:
+                continue
+            dfc1 = dfc[dfc[label_col] == combo[0]][col]
+            dfc2 = dfc[dfc[label_col] == combo[1]][col]
+
+            moa = MOACalculator(dfc1, dfc2)
+
+            table_data["label"].append(combo[0])
+            table_data["versus"].append(combo[1])
+            table_data["predictor"].append(col)
+            table_data["score"].append(moa.calculate())
+
+        moa_table = MOATable(table_data)
+        moa_table.rank()
+        moa_tables.append(moa_table.table)
+
+    return pd.concat(moa_tables)
 
 
 def create_table(df, label_col):
