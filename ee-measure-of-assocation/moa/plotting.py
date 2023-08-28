@@ -31,7 +31,7 @@ class MoaPlot:
         self.fig.savefig(path)
 
 
-class MOAPlotGenerator:
+class MoaPlotGenerator:
     def __init__(self, samples: pd.DataFrame, scores: pd.DataFrame):
         self.samples = samples
         self.scores = scores
