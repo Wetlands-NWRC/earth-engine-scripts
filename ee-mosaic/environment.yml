@@ -1,0 +1,7 @@
+name: ee
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - earthengine-api
+prefix: C:\Users\rhamilton\AppData\Local\miniconda3\envs\ee
