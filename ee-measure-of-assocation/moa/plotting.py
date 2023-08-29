@@ -4,55 +4,35 @@ import matplotlib.pyplot as plt
 import pandas as pd
 
 
-class MoaPlot:
-    def __init__(self, title, x_label, y_label):
-        self.title = title
-        self.x_label = x_label
-        self.y_label = y_label
-        self.fig, self.ax = plt.subplots()
+def plot_predictors(
+    samples: pd.DataFrame, label_col: str, ranks: pd.DataFrame, out_dir: str = None
+):
+    out_dir = "./data/plots/" if out_dir is None else out_dir
 
-    def add_histogram(
-        self,
-        data,
-        label=None,
-        bin=100,
-        alpha=0.5,
-    ):
-        self.ax.hist(data, bins=bin, alpha=alpha, label=label)
-        self.ax.set_xlabel(self.x_label)
-        self.ax.set_ylabel(self.y_label)
-        self.ax.set_title(self.title)
-        self.ax.legend()
+    if not os.path.exists(out_dir):
+        os.makedirs(out_dir)
 
-    def show(self):
-        plt.show()
+    for _, row in ranks.iterrows():
+        # isolate the data series we want to use
+        label = samples[samples[label_col] == row["label"]][row["predictor"]]
+        versus = samples[samples[label_col] == row["versus"]][row["predictor"]]
 
-    def save(self, path):
-        self.fig.savefig(path)
+        # create the plot objects
+        title = (
+            f"{row['label']} vs {row['versus']} {row['predictor']} rank {row['rank']}"
+        )
 
+        # Plot histogram
+        plt.hist(label, bins=100, alpha=0.5, label=row["label"])
+        plt.hist(versus, bins=100, alpha=0.5, label=row["versus"])
 
-class MoaPlotGenerator:
-    def __init__(self, samples: pd.DataFrame, scores: pd.DataFrame):
-        self.samples = samples
-        self.scores = scores
-        self.plotter = MoaPlot
+        # set axis labels and title
+        plt.legend(loc="upper right")
+        plt.xlabel("Value")
+        plt.ylabel("Frequency")
+        plt.title(title)
 
-    def generate_plots(self, out_dir: str = None, ranks: int = 3):
-        for _, rows in self.scores.iterrows():
-            input_scores = None
-            label = rows["label"]
-            versus = rows["versus"]
-            predictor = rows["predictor"]
-            rank = rows["rank"]
-            if rank > ranks:
-                continue
-            dfc1 = self.samples[self.samples["label"] == label][predictor]
-            dfc2 = self.samples[self.samples["label"] == versus][predictor]
-            title = f"{label} vs {versus} {predictor} rank {rank}"
-            plot = self.plotter(title, predictor, "frequency")
-            plot.add_histogram(dfc1, label=label)
-            plot.add_histogram(dfc2, label=versus)
-            if out_dir is not None:
-                plot.save(os.path.join(out_dir, f"{title}.png"))
-            else:
-                plot.show()
+        plt.savefig(os.path.join(out_dir, f"{'_'.join(title.split(' '))}.png"))
+        plt.clf()
+    plt.close()
+    return None
