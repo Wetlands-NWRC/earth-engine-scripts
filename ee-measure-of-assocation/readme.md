@@ -60,7 +60,7 @@ moa_ranks = moa_scores.get_by_rank(1)
 moa.plot_predictors(
     samples=sampled_points, # the samples
     label_col='class_name',
-    ranks=moa_scores, # the moa scores
+    ranks=moa_ranks, # the moa scores
     out_dir='plots' # the output directory
 )
 
