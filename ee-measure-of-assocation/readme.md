@@ -15,7 +15,7 @@ use any data source. As long as it is a csv of sampled observations
 git clone https://github.com/Wetlands-NWRC/earth-engine-scripts.git
 ```
 ```bash
-cd ./earth-engine-scripts
+cd ./earth-engine-scripts/ee-measure-of-association
 ```
 
 ### Setup Conda Environment
